@@ -35,7 +35,19 @@ function init(){
 
     map.addLayer(marcadoresLayer);
 
+    const containerOverlay = document.querySelector('.containerOverlay');
+    const textoOverlay = document.getElementById('textoOverlay');
+
+    const overlayLayer = new ol.Overlay({
+        element: containerOverlay
+    });
+    map.addOverlay(overlayLayer);
+
     map.on("click",(e)=>{
-        console.log(e.coordinate);
+        overlayLayer.setPosition(undefined);
+        map.forEachFeatureAtPixel(e.pixel, function(feature, layer){
+            let coordenadaClicada = feature.values_.geometry.flatCoordinates;
+            overlayLayer.setPosition(coordenadaClicada);
+        })
     })
 }
