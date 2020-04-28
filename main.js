@@ -2,7 +2,7 @@ window.onload = init;
 
 function init(){
     const map = new ol.Map({
-        //view layer target
+        // view layer target
         view: new ol.View({
             center: [-5602034.912633961, -1525141.1770111802],
             zoom: 0,
@@ -25,18 +25,64 @@ function init(){
         target: "js-map"
     })
 
-    const marcadoresLayer = new ol.layer.Vector({
+    //  estilo triangulo online
+    const shapeOffline = new ol.style.RegularShape({
+        fill: new ol.style.Stroke({
+            color:[222, 45, 18, 1]
+        }),
+        stroke: new ol.style.Stroke({
+            color:[30, 30, 31, 1],
+            width: 1.2
+        }),
+        points: 3,
+        radius: 8
+    });
+
+    //  estilo triangulo online
+    const shapeOnline = new ol.style.RegularShape({
+        fill: new ol.style.Fill({
+            color:[77, 255, 0, 1]
+        }),
+        stroke: new ol.style.Stroke({
+            color:[30, 30, 31, 1],
+            width: 1.2
+        }),
+        points: 3,
+        radius: 8
+    });
+
+    const estiloOnline = new ol.style.Style({
+        image: shapeOnline
+    })
+
+    const estiloOffline = new ol.style.Style({
+        image: shapeOffline
+    })
+
+    const estiloDaEstacao = function(feature){
+        let status = feature.get("Status");
+        if (status == "Online") feature.setStyle([estiloOnline])
+            else feature.setStyle([estiloOffline])
+    }
+
+    const marcadoresLayer = new ol.layer.VectorImage({
         source: new ol.source.Vector({
             url: './marcadores/marcadores.geojson',
             format: new ol.format.GeoJSON(),
         }),
-        visible: true
+        visible: true,
+        style: estiloDaEstacao
     })
 
     map.addLayer(marcadoresLayer);
 
     const containerOverlay = document.querySelector('.containerOverlay');
-    const textoOverlay = document.getElementById('textoOverlay');
+    const station = document.getElementById('Station');
+    const last = document.getElementById('Last');
+    const size = document.getElementById('Size');
+    const received = document.getElementById('Received');
+    const status = document.getElementById('Status');
+
 
     const overlayLayer = new ol.Overlay({
         element: containerOverlay
@@ -46,8 +92,15 @@ function init(){
     map.on("click",(e)=>{
         overlayLayer.setPosition(undefined);
         map.forEachFeatureAtPixel(e.pixel, function(feature, layer){
-            let coordenadaClicada = feature.values_.geometry.flatCoordinates;
+            let coordenadaClicada = e.coordinate;
             overlayLayer.setPosition(coordenadaClicada);
+            
+            station.innerHTML = feature.get("Station");
+            last.innerHTML = feature.get("Last");
+            size.innerHTML = feature.get("Size");
+            received.innerHTML = feature.get("Received");
+            status.innerHTML = feature.get("Status");
+
         })
     })
 }
