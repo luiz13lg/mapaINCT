@@ -1,6 +1,6 @@
-window.onload = init;
+// window.onload = init;
 
-function init(){
+function init(marcadores){
     const map = new ol.Map({
         // view layer target
         view: new ol.View({
@@ -25,6 +25,8 @@ function init(){
         target: "js-map"
     })
 
+    // console.log(marcadores);
+
     //  estilo triangulo online
     const shapeOffline = new ol.style.RegularShape({
         fill: new ol.style.Stroke({
@@ -37,11 +39,31 @@ function init(){
         points: 3,
         radius: 8
     });
-
-    //  estilo triangulo online
-    const shapeOnline = new ol.style.RegularShape({
+    const shapeOnline1h = new ol.style.RegularShape({
         fill: new ol.style.Fill({
-            color:[77, 255, 0, 1]
+            color:[17, 255, 0, 1]
+        }),
+        stroke: new ol.style.Stroke({
+            color:[30, 30, 31, 1],
+            width: 1.2
+        }),
+        points: 3,
+        radius: 8
+    });
+    const shapeOnline2h = new ol.style.RegularShape({
+        fill: new ol.style.Fill({
+            color:[27, 135, 52, 1]
+        }),
+        stroke: new ol.style.Stroke({
+            color:[30, 30, 31, 1],
+            width: 1.2
+        }),
+        points: 3,
+        radius: 8
+    });
+    const shapeOnline3h = new ol.style.RegularShape({
+        fill: new ol.style.Fill({
+            color:[41, 71, 48, 1]
         }),
         stroke: new ol.style.Stroke({
             color:[30, 30, 31, 1],
@@ -51,8 +73,14 @@ function init(){
         radius: 8
     });
 
-    const estiloOnline = new ol.style.Style({
-        image: shapeOnline
+    const estiloOnline1h = new ol.style.Style({
+        image: shapeOnline1h
+    })
+    const estiloOnline2h = new ol.style.Style({
+        image: shapeOnline2h
+    })
+    const estiloOnline3h = new ol.style.Style({
+        image: shapeOnline3h
     })
 
     const estiloOffline = new ol.style.Style({
@@ -61,10 +89,32 @@ function init(){
 
     const estiloDaEstacao = function(feature){
         let status = feature.get("Status");
-        if (status == "Online") feature.setStyle([estiloOnline])
-            else feature.setStyle([estiloOffline])
+
+        if (status == "Online"){
+            let horaAtual = new Date().getHours();
+            let diaAtual = new Date().getDate();
+
+            if(feature.get("Received") != ""){
+                let horaString = feature.get("Received").split(" ");
+                let diaRecebido = parseInt(horaString[1]);
+
+                if(diaAtual - diaRecebido == 0){
+                    if(horaString.length == 3){
+                        horaString = horaString[2].split(":");
+                        let horaRecebida = parseInt(horaString[0]);
+
+                        (horaAtual - horaRecebida == 0 || horaAtual - horaRecebida == 1) ? feature.setStyle([estiloOnline1h]) :
+                            horaAtual - horaRecebida == 2 ? feature.setStyle([estiloOnline2h]) : feature.setStyle([estiloOnline3h]);
+                    }
+                }
+                else feature.setStyle([estiloOnline3h]);
+            } else feature.setStyle([estiloOnline3h]);
+        }
+        else feature.setStyle([estiloOffline])
     }
 
+    marcadores = JSON.parse(marcadores); 
+    
     const marcadoresLayer = new ol.layer.VectorImage({
         source: new ol.source.Vector({
             url: './marcadores/marcadores.geojson',
@@ -83,7 +133,6 @@ function init(){
     const received = document.getElementById('Received');
     const status = document.getElementById('Status');
 
-
     const overlayLayer = new ol.Overlay({
         element: containerOverlay
     });
@@ -100,7 +149,6 @@ function init(){
             size.innerHTML = feature.get("Size");
             received.innerHTML = feature.get("Received");
             status.innerHTML = feature.get("Status");
-
         })
     })
 }
