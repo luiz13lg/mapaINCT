@@ -6,6 +6,13 @@ const map = new ol.Map({
         // maxZoom: 0,
         // extent: [-10449083.805621821, -4210178.782637534, -2296729.275207868, 941899.3487077651]
     }),
+    controls: ol.control.defaults({
+        attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+          collapsible: false
+        })
+      }).extend([
+        new ol.control.ScaleLine()
+      ]),
     layers: [
         // new ol.layer.Tile({
         //     source: new ol.source.BingMaps({
@@ -49,18 +56,7 @@ const shapeOnline1h = new ol.style.RegularShape({
 });
 const shapeOnline2h = new ol.style.RegularShape({
     fill: new ol.style.Fill({
-        color:[27, 135, 52, 1]
-    }),
-    stroke: new ol.style.Stroke({
-        color:[30, 30, 31, 1],
-        width: 1.2
-    }),
-    points: 3,
-    radius: 8
-});
-const shapeOnline3h = new ol.style.RegularShape({
-    fill: new ol.style.Fill({
-        color:[41, 71, 48, 1]
+        color:[255, 145, 0, 1]
     }),
     stroke: new ol.style.Stroke({
         color:[30, 30, 31, 1],
@@ -76,9 +72,7 @@ const estiloOnline1h = new ol.style.Style({
 const estiloOnline2h = new ol.style.Style({
     image: shapeOnline2h
 })
-const estiloOnline3h = new ol.style.Style({
-    image: shapeOnline3h
-})
+
 
 const estiloOffline = new ol.style.Style({
     image: shapeOffline
@@ -95,19 +89,17 @@ const estiloDaEstacao = function(feature){
             let horaString = feature.get("Received").split(" ");
             let diaRecebido = parseInt(horaString[1]);
 
-            if(diaAtual - diaRecebido == 0){
-                if(horaString.length == 3){
+            if(diaAtual - diaRecebido == 0){    //se dados sao do mesmo dia
+                if(horaString.length == 3){     //se formato de hora esta certo
                     horaString = horaString[2].split(":");
                     let horaRecebida = parseInt(horaString[0]);
 
-                    (horaAtual - horaRecebida == 0 || horaAtual - horaRecebida == 1) ? feature.setStyle([estiloOnline1h]) :
-                        horaAtual - horaRecebida == 2 ? feature.setStyle([estiloOnline2h]) : feature.setStyle([estiloOnline3h]);
+                    (horaAtual - horaRecebida == 0 || horaAtual - horaRecebida == 1) ? feature.setStyle([estiloOnline1h]) : feature.setStyle([estiloOnline2h]);
                 }
             }
-            else feature.setStyle([estiloOnline3h]);
-        } else feature.setStyle([estiloOnline3h]);
-    }
-    else feature.setStyle([estiloOffline])
+            else feature.setStyle([estiloOnline2h]);
+        } else feature.setStyle([estiloOnline2h]);
+    }else feature.setStyle([estiloOffline])
 }
 
 let marcadoresLayer = new ol.layer.VectorImage({

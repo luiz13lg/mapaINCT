@@ -13,7 +13,7 @@ app.listen(3013,() => {                //servidor startado
 
 app.get('/', cors(), function (req, res) {          //resposta ao get
     console.log("acessado.");
-    // let teste = shell.exec("ls &",{silent:true}).stdout;
+    // let teste = shell.exec("zabbix &",{silent:true}).stdout;
     try{
         let data = fs.readFileSync('log.txt', 'utf-8');
         data = converterJSON(data);
