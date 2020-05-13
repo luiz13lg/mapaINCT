@@ -7,8 +7,20 @@
     <title>Mapa INCT</title>
 </head>
 <body>
-    <div id="js-map"></div>
+    <div id="filtro">
+        <div class="divInput"><input type="checkbox" checked id="estacoes-desativadas" onchange="ocultarLayerEstacoesDesativadas()"> Estações Desativadas</div>
+        <div class="divInput"><input type="checkbox" checked id="estacoes-ativadas" onchange="ocultarLayerEstacoesAtivadas()"> Estações em Funcionamento</div>
+    </div>
 
+    <div id="js-map"></div>
+    <button id="botaoAtualizar" onclick="atualizarLayerMarcadores()"><img src="./img/botao-atualizar.png" id="imagemBotaoAtualizar"></button>
+    
+    <div id="legenda">
+        <p><img src="./img/triangulo-verde.png" id="imagemLegenda">Atualizado há menos de 1h</p>
+        <p><img src="./img/triangulo-laranja.png" id="imagemLegenda">Atualizado há mais de 1h</p>
+        <p><img src="./img/triangulo-vermelho.png" id="imagemLegenda">Offline</p>
+    </div>
+    
     <div class="containerOverlay">
         <span id="Station"></span>
         <span id="Last"></span>
@@ -16,7 +28,7 @@
         <span id="Received"></span>
         <span id="Status"></span>
     </div>
-    <button id="btnAtualizar" onclick="atualizarLayerMarcadores(marcadoresLayer)">Atualizar Marcadores</button>
+        
     <script src="./libs/v6.3.1-dist/ol.js"></script>
     <script src="./main.js"></script>
 </body>

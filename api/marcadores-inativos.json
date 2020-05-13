@@ -1,0 +1,104 @@
+{"type":"FeatureCollection",
+    "features":[
+{
+    "type":"Feature",
+    "properties":{
+        "Station": "GALH",
+        "Status": "Offline"
+    },
+    "geometry":{
+        "type":"Point",
+        "coordinates":[-51.416069, -22.121506]
+    }
+},{
+    "type":"Feature",
+    "properties":{
+        "Station": "MAC2",
+        "Status": "Offline"
+    },
+    "geometry":{
+        "type":"Point",
+        "coordinates":[-41.791385, -22.376816]
+    }
+},{
+    "type":"Feature",
+    "properties":{
+        "Station": "MACA",
+        "Status": "Offline"
+    },
+    "geometry":{
+        "type":"Point",
+        "coordinates": [-41.862114, -22.414936]
+    }
+},{
+    "type":"Feature",
+    "properties":{
+        "Station": "MAN2",
+        "Status": "Offline"
+    },
+    "geometry":{
+        "type":"Point",
+        "coordinates": [-60.017263, -3.091880]
+    }
+},{
+    "type":"Feature",
+    "properties":{
+        "Station": "MAN3",
+        "Status": "Offline"
+    },
+    "geometry":{
+        "type":"Point",
+        "coordinates": [-59.974904, -3.110180]
+    }
+},{
+    "type":"Feature",
+    "properties":{
+        "Station": "MANA",
+        "Status": "Offline"
+    },
+    "geometry":{
+        "type":"Point",
+        "coordinates": [-60.007167, -3.119825]
+    }
+},{
+    "type":"Feature",
+    "properties":{
+        "Station": "MORU",
+        "Status": "Offline"
+    },
+    "geometry":{
+        "type":"Point",
+        "coordinates": [-51.413301, -22.127674]
+    }
+},{
+    "type":"Feature",
+    "properties":{
+        "Station": "PRU1",
+        "Status": "Offline"
+    },
+    "geometry":{
+        "type":"Point",
+        "coordinates": [-51.408672, -22.120046]
+    }
+},{
+    "type":"Feature",
+    "properties":{
+        "Station": "PRU3",
+        "Status": "Offline"
+    },
+    "geometry":{
+        "type":"Point",
+        "coordinates": [-51.406037, -22.119086]
+    }
+},{
+    "type":"Feature",
+    "properties":{
+        "Station": "SJCI",
+        "Status": "Offline"
+    },
+    "geometry":{
+        "type":"Point",
+        "coordinates": [-45.859743, -23.207528]
+    }
+}
+]}

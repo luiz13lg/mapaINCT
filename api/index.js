@@ -7,6 +7,13 @@ app.use(cors());
 
 console.log('Server is running.');
 
+let arquivoEstacoes = fs.readFileSync('marcadores.json', 'utf-8');
+const dadosEstacoes = JSON.parse(arquivoEstacoes);
+
+let arquivoEstacoesInativas = fs.readFileSync('marcadores-inativos.json', 'utf-8');
+const dadosEstacoesInativas = JSON.parse(arquivoEstacoesInativas);
+
+
 app.listen(3013,() => {                //servidor startado
     console.log('API rodando na porta: 3013')
 })
@@ -15,8 +22,22 @@ app.get('/', cors(), function (req, res) {          //resposta ao get
     console.log("acessado.");
     // let teste = shell.exec("zabbix &",{silent:true}).stdout;
     try{
-        let data = fs.readFileSync('log.txt', 'utf-8');
-        data = converterJSON(data);
+		let data = fs.readFileSync('log.txt', 'utf-8');
+		
+		data = converterJSON(data);
+        res.write(data);
+    }catch (err) {
+        console.error("Erro ao obter o log das estações:");
+        console.log(err);
+    }
+    res.end();
+});
+
+app.get('/desativados', cors(), function (req, res) {          //resposta ao get
+    console.log("acessado desativados.");
+    // let teste = shell.exec("zabbix &",{silent:true}).stdout;
+    try{
+		let data = fs.readFileSync('marcadores-inativos.json', 'utf-8');
         res.write(data);
     }catch (err) {
         console.error("Erro ao obter o log das estações:");
@@ -65,7 +86,7 @@ function converterJSON(string){
 	primeiro_status = dado.indexOf(">");
 	segundo_status = dado.indexOf("</");
 	dado = dado.slice(primeiro_status+1,segundo_status);
-	json += obterCoordenadasEstacao(estacao);
+	json += dadosEstacoes[estacao];
 	json += "},"
 
 	for(let auxString = 1; auxString < 17; auxString++){
@@ -104,7 +125,7 @@ function converterJSON(string){
 		dado = dado.slice(primeiro_status+1,segundo_status);
 		
 		json += `"Status": "${dado}"},`;
-		json += obterCoordenadasEstacao(estacao);
+		json += dadosEstacoes[estacao];
 		json += "},"
 	}
 
@@ -139,48 +160,11 @@ function converterJSON(string){
 	dado = dado.slice(primeiro_status+1,segundo_status);
 	
 	json += `"Status": "${dado}"},`;
-	json += obterCoordenadasEstacao(estacao);
+	json += dadosEstacoes[estacao];
 	json += "}"
 	json += "\]\}";
 	
-	return json;
-}
+	
 
-function obterCoordenadasEstacao(estacao){
-	switch(estacao){
-		case "FRTZ":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":[-38.577635, -3.744554\]\}";
-		case "INCO":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-41.808178, -22.401163\]\}";
-		case "MAC3":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-48.311299, -10.199649\]\}";
-		case "PALM":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-51.119683, -30.073896\]\}";
-		case "POAL":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-51.407079, -22.122038\]\}";
-		case "PRU2":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-46.328114, -22.318548\]\}";
-		case "PRU4":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-51.408526, -22.120081\]\}";
-		case "SJCE":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-45.859743, -23.207528\]\}";
-		case "SJCU":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-45.956592, -23.210589\]\}";
-		case "SLMA":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-44.212290, -2.593464\]\}";
-		case "SPBO":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-48.432301, -22.852467\]\}";
-		case "STMC":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-47.523798, -18.724027\]\}";
-		case "STNT":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-35.196212, -5.840586\]\}";
-		case "STSN":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-55.544692, -11.829394\]\}";
-		case "STSH":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-54.344363, -24.846995\]\}";
-		case "UFBA":
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[-38.510659, -12.999826\]\}";
-		default:
-			return "\"geometry\":\{\"type\":\"Point\",\"coordinates\":\[0.0, 0.0\]\}";
-	}			
+	return json;
 }

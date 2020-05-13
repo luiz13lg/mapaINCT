@@ -25,3 +25,42 @@
     border-style: solid;
     border-color: #555 transparent transparent transparent;
   }
+
+#filtro{
+  display: flex;
+  flex-direction: row;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.divInput{
+  padding-left: 25px;
+}
+
+#legenda{
+  position: absolute;
+  bottom: 35px;
+  right: 20px;
+  background-color: white;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+#botaoAtualizar{
+  position: absolute;
+  background-color: unset;
+  border-color: unset;
+  top: 5px;
+  right: 20px;
+}
+
+#imagemBotaoAtualizar{
+  width: 30px;
+  height: auto;
+}
+
+#imagemLegenda{
+  width: 20px;
+  height: auto;
+  margin-right: 5px;
+}
