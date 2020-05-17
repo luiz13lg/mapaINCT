@@ -31,6 +31,21 @@
   flex-direction: row;
   margin-top: 15px;
   margin-bottom: 15px;
+  align-items: center;
+}
+
+#droplist-logs{
+  margin-left: 30px;
+  margin-top: 0;
+  margin-bottom: 0;
+
+  background-color: white;
+  font-size:14px; /* Tamanho da Fonte */
+  border-radius: 5px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-right: 5px;
+  padding-left: 5px;
 }
 
 .divInput{

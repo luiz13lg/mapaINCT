@@ -2,8 +2,8 @@ const map = new ol.Map({
     // view layer target
     view: new ol.View({
         center: [-5602034.912633961, -1525141.1770111802],
-        zoom: 0,
-        // maxZoom: 0,
+        zoom: 4.5,
+        // maxZoom: 5,
         // extent: [-10449083.805621821, -4210178.782637534, -2296729.275207868, 941899.3487077651]
     }),
     controls: ol.control.defaults({
@@ -29,9 +29,9 @@ const map = new ol.Map({
     target: "js-map"
 })
 
-// console.log(marcadores);
+carregarLogsParaDroplist();
 
-//  estilo triangulo online
+//  Estilos
 const shapeOffline = new ol.style.RegularShape({
     fill: new ol.style.Stroke({
         color:[222, 45, 18, 1]
@@ -41,7 +41,7 @@ const shapeOffline = new ol.style.RegularShape({
         width: 1.2
     }),
     points: 3,
-    radius: 8
+    radius: 10
 });
 const shapeOnline1h = new ol.style.RegularShape({
     fill: new ol.style.Fill({
@@ -52,7 +52,7 @@ const shapeOnline1h = new ol.style.RegularShape({
         width: 1.2
     }),
     points: 3,
-    radius: 20
+    radius: 10
 });
 const shapeOnline2h = new ol.style.RegularShape({
     fill: new ol.style.Fill({
@@ -63,7 +63,7 @@ const shapeOnline2h = new ol.style.RegularShape({
         width: 1.2
     }),
     points: 3,
-    radius: 8
+    radius: 10
 });
 
 const estiloOnline1h = new ol.style.Style({
@@ -72,7 +72,6 @@ const estiloOnline1h = new ol.style.Style({
 const estiloOnline2h = new ol.style.Style({
     image: shapeOnline2h
 })
-
 
 const estiloOffline = new ol.style.Style({
     image: shapeOffline
@@ -101,8 +100,6 @@ const estiloDaEstacao = function(feature){
         } else feature.setStyle([estiloOnline2h]);
     }else feature.setStyle([estiloOffline])
 }
-
-let featureArray = []
 
 let marcadoresLayer = new ol.layer.VectorImage({
     source: new ol.source.Vector({
@@ -142,7 +139,7 @@ map.on("click",(e)=>{
     map.forEachFeatureAtPixel(e.pixel, function(feature, layer){
         let coordenadaClicada = e.coordinate;
         overlayLayer.setPosition(coordenadaClicada);
-        
+        console.log(feature);
         station.innerHTML = feature.get("Station");
         status.innerHTML = feature.get("Status");
         
@@ -178,4 +175,83 @@ function ocultarLayerEstacoesDesativadas(){
 function ocultarLayerEstacoesAtivadas(){
     let value = document.getElementById('estacoes-ativadas');
     value.checked ? map.addLayer(marcadoresLayer) : map.removeLayer(marcadoresLayer)
+}
+
+function carregarLogsParaDroplist(){
+    let url = "http://localhost:3013/obterLogsDisponiveis";
+    let xhttp = new XMLHttpRequest();
+    xhttp.open("GET", url, false);
+    xhttp.send();
+
+    let logsDisponiveis = xhttp.responseText;
+
+    let droplist = document.getElementById('droplist-logs');
+    let logsDivididos = logsDisponiveis.split('\n');
+    
+    for(let log of logsDivididos){
+        option = document.createElement("option");
+        option.value = log;
+        
+        if(log != ""){        
+            log = log.split("-");
+            let dia = log[1];
+            let hora = log[2].split(".")[0];
+
+            option.text = `Dia ${dia} ${hora}`;
+            droplist.add(option);
+        }
+    }
+}
+
+async function mudarLogExibido(){
+    let droplist = document.getElementById('droplist-logs');
+    let logSelecionado = droplist.options[droplist.selectedIndex].value;
+
+    await fetch('http://localhost:3013/obterLogSelecionado', {
+        method: 'POST',
+        body: JSON.stringify({
+            log: logSelecionado
+        }),
+        headers: { "Content-Type": "application/json" }
+    }).then( response => response.text())
+        .then(mapa => {
+            let arrayFeatures = [];
+
+            pontosMapa = JSON.parse(mapa);
+
+            for(let feature of pontosMapa.features){
+                let coordenadas = ol.proj.transform([feature.geometry.coordinates[0],feature.geometry.coordinates[1]], 'EPSG:4326','EPSG:3857');
+                
+                let featureMapa = new ol.Feature({
+                    geometry: new ol.geom.Point([coordenadas[0],coordenadas[1]]),
+                    Station: feature.properties.Station,
+                    Last: feature.properties.Last,
+                    Size: feature.properties.Size,
+                    Received: feature.properties.Received,
+                    Status: feature.properties.Status
+                });
+                arrayFeatures.push(featureMapa)
+            }
+            
+            map.removeLayer(marcadoresLayer);
+            
+            marcadoresLayer = new ol.layer.VectorImage({
+                source: new ol.source.Vector({
+                    features: arrayFeatures
+                }),
+                visible: true,
+                style: estiloDaEstacao
+            })
+            map.addLayer(marcadoresLayer);
+
+        //setando o filtro caso ele esteja desativado
+            let value = document.getElementById('estacoes-ativadas');
+            value.checked ? value.checked = true : value.checked = true;
+
+        }).catch(
+        err => {
+            alert('Dados não enviados ' + err),
+                enviado = false
+        }
+    )
 }
