@@ -147,6 +147,24 @@ map.on("click",(e)=>{
     })
 })
 
+definirLimiteData()
+
+function definirLimiteData(){
+    var data = new Date();
+    var mes = data.getMonth() + 1;     // getMonth() is zero-based
+    var dia = data.getDate();
+    var ano = data.getFullYear();
+    
+    if(mes < 10)
+    mes = '0' + mes.toString();
+    if(dia < 10)
+    dia = '0' + dia.toString();
+
+    var dataMaxima = ano + '-' + mes + '-' + dia;
+
+    document.getElementById('data-logs').setAttribute('max', dataMaxima);
+}
+
 function atualizarLayerMarcadores(){
     map.removeLayer(marcadoresLayer);
 
@@ -175,7 +193,12 @@ function ocultarLayerEstacoesAtivadas(){
     value.checked ? map.addLayer(marcadoresLayer) : map.removeLayer(marcadoresLayer)
 }
 
-function carregarLogsParaDroplist(data){
+function obterDataSelecionada(){
+    let data = document.getElementById("data-logs").value;
+    carregarLogsParaDroplist(data);
+}
+
+async function carregarLogsParaDroplist(data){
     fetch('http://localhost:3013/obterLogsDisponiveis', {
         method: 'POST',
         body: JSON.stringify({
@@ -187,6 +210,10 @@ function carregarLogsParaDroplist(data){
             let logs = listaLogs.split("\n");
             let droplistLogs = document.getElementById('droplist-logs');
             
+            for (let posicaoAtual = droplistLogs.length - 1; posicaoAtual > 0; posicaoAtual--){
+                droplistLogs.remove(posicaoAtual);
+            }
+
             for(log of logs){
                 if (log === "") continue
 
@@ -195,7 +222,7 @@ function carregarLogsParaDroplist(data){
 
                 let opt = document.createElement('option');
                 opt.appendChild( document.createTextNode(hora) );
-                opt.value = log; 
+                opt.value = data+" "+log; 
                 droplistLogs.appendChild(opt); 
             }
 
@@ -207,64 +234,70 @@ function carregarLogsParaDroplist(data){
     )
 }
 
-function obterDataSelecionada(){
-    let data = document.getElementById("data-logs").value
-    console.log(data);
-
-    carregarLogsParaDroplist(data)
-}
-
 async function obterLogSelecionado(){
 
     let droplist = document.getElementById('droplist-logs');
     let logSelecionado = droplist.options[droplist.selectedIndex].value;
 
-    await fetch('http://localhost:3013/obterLogSelecionado', {
-        method: 'POST',
-        body: JSON.stringify({
-            log: logSelecionado
-        }),
-        headers: { "Content-Type": "application/json" }
-    }).then( response => response.text())
-        .then(mapa => {
-            let arrayFeatures = [];
+    if (logSelecionado === "-"){
+        map.removeLayer(marcadoresLayer);
+        marcadoresLayer = new ol.layer.VectorImage({
+            source: new ol.source.Vector({
+                url: "http://localhost:3013",
+                format: new ol.format.GeoJSON(),
+            }),
+            visible: true,
+            style: estiloDaEstacao
+        })
+        map.addLayer(marcadoresLayer);
+    } else{
+        await fetch('http://localhost:3013/obterLogSelecionado', {
+            method: 'POST',
+            body: JSON.stringify({
+                log: logSelecionado
+            }),
+            headers: { "Content-Type": "application/json" }
+        }).then( response => response.text())
+            .then(mapa => {
+                let arrayFeatures = [];
 
-            pontosMapa = JSON.parse(mapa);
+                pontosMapa = JSON.parse(mapa);
 
-            for(let feature of pontosMapa.features){
-                let coordenadas = ol.proj.transform([feature.geometry.coordinates[0],feature.geometry.coordinates[1]], 
-                                        'EPSG:4326','EPSG:3857');
+                for(let feature of pontosMapa.features){
+                    let coordenadas = ol.proj.transform([feature.geometry.coordinates[0],feature.geometry.coordinates[1]], 
+                                            'EPSG:4326','EPSG:3857');
+                    
+                    let featureMapa = new ol.Feature({
+                        geometry: new ol.geom.Point([coordenadas[0],coordenadas[1]]),
+                        Station: feature.properties.Station,
+                        Last: feature.properties.Last,
+                        Size: feature.properties.Size,
+                        Received: feature.properties.Received,
+                        Status: feature.properties.Status
+                    });
+                    arrayFeatures.push(featureMapa)
+                }
                 
-                let featureMapa = new ol.Feature({
-                    geometry: new ol.geom.Point([coordenadas[0],coordenadas[1]]),
-                    Station: feature.properties.Station,
-                    Last: feature.properties.Last,
-                    Size: feature.properties.Size,
-                    Received: feature.properties.Received,
-                    Status: feature.properties.Status
-                });
-                arrayFeatures.push(featureMapa)
+                map.removeLayer(marcadoresLayer);
+                
+                marcadoresLayer = new ol.layer.VectorImage({
+                    source: new ol.source.Vector({
+                        features: arrayFeatures
+                    }),
+                    visible: true,
+                    style: estiloDaEstacao
+                })
+                map.addLayer(marcadoresLayer);
+
+            //setando o filtro caso ele esteja desativado
+                let value = document.getElementById('estacoes-ativadas');
+                value.checked ? value.checked = true : value.checked = true;
+
+            }).catch(
+            err => {
+                alert('Dados não enviados ' + err),
+                    enviado = false
             }
-            
-            map.removeLayer(marcadoresLayer);
-            
-            marcadoresLayer = new ol.layer.VectorImage({
-                source: new ol.source.Vector({
-                    features: arrayFeatures
-                }),
-                visible: true,
-                style: estiloDaEstacao
-            })
-            map.addLayer(marcadoresLayer);
-
-        //setando o filtro caso ele esteja desativado
-            let value = document.getElementById('estacoes-ativadas');
-            value.checked ? value.checked = true : value.checked = true;
-
-        }).catch(
-        err => {
-            alert('Dados não enviados ' + err),
-                enviado = false
-        }
-    )
+        )
+    }
 }

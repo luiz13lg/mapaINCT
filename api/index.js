@@ -74,9 +74,18 @@ app.post('/obterLogsDisponiveis', cors(), function (req, res) {          //respo
 app.post('/obterLogSelecionado', cors(), function (req, res) {          //resposta ao get
     console.log("acessado logs disponíveis: " + req.body.log);
     try{
-		let data = fs.readFileSync(`logs/${req.body.log}`, 'utf-8');
-		data = converterJSON(data);
-		res.write(data);
+		let data = req.body.log.split(" ")[0].split("-");
+		let nomeArquivo = req.body.log.split(" ")[1];
+
+		let ano = data[0]
+		let mes = data[1];
+		let dia = data[2];
+		
+		if(mes.charAt(0) === '0') mes = mes.charAt(1) 
+
+		let marcadores = fs.readFileSync(`logs/${ano}/${mes}/${dia}/${nomeArquivo}`, 'utf-8');
+		marcadores = converterJSON(marcadores);
+		res.write(marcadores);
     }catch (err) {
         console.error("Erro ao obter lista de logs");
 		console.log(err);
