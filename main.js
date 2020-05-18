@@ -179,6 +179,9 @@ function atualizarLayerMarcadores(){
 
     map.addLayer(marcadoresLayer);
 
+    let listaLogs = document.getElementById('droplist-logs');
+    listaLogs.options[0].setAttribute('selected',true);
+
     let value = document.getElementById('estacoes-ativadas');
     value.checked ? value.checked = true : value.checked = true;
 }
@@ -238,6 +241,7 @@ async function obterLogSelecionado(){
 
     let droplist = document.getElementById('droplist-logs');
     let logSelecionado = droplist.options[droplist.selectedIndex].value;
+    droplist.options[0].removeAttribute('selected')
 
     if (logSelecionado === "-"){
         map.removeLayer(marcadoresLayer);
