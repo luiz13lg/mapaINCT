@@ -8,7 +8,10 @@
 </head>
 <body>
     <div id="filtro">
-        <select name="droplist-logs" id="droplist-logs" onchange="mudarLogExibido()"></select>
+        <input type="date" name="data-logs" id="data-logs" onchange="obterDataSelecionada()">
+        <select name="droplist-logs" id="droplist-logs" onchange="obterLogSelecionado()">
+            <option value="-">Log atual</option>
+        </select>
         <div class="divInput"><input type="checkbox" checked id="estacoes-desativadas" onchange="ocultarLayerEstacoesDesativadas()"> Estações Desativadas</div>
         <div class="divInput"><input type="checkbox" checked id="estacoes-ativadas" onchange="ocultarLayerEstacoesAtivadas()"> Estações em Funcionamento</div>
     </div>

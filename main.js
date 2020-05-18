@@ -29,8 +29,6 @@ const map = new ol.Map({
     target: "js-map"
 })
 
-carregarLogsParaDroplist();
-
 //  Estilos
 const shapeOffline = new ol.style.RegularShape({
     fill: new ol.style.Stroke({
@@ -177,33 +175,47 @@ function ocultarLayerEstacoesAtivadas(){
     value.checked ? map.addLayer(marcadoresLayer) : map.removeLayer(marcadoresLayer)
 }
 
-function carregarLogsParaDroplist(){
-    let url = "http://localhost:3013/obterLogsDisponiveis";
-    let xhttp = new XMLHttpRequest();
-    xhttp.open("GET", url, false);
-    xhttp.send();
+function carregarLogsParaDroplist(data){
+    fetch('http://localhost:3013/obterLogsDisponiveis', {
+        method: 'POST',
+        body: JSON.stringify({
+            data: data
+        }),
+        headers: { "Content-Type": "application/json" }
+    }).then(response => response.text())
+        .then(listaLogs => {
+            let logs = listaLogs.split("\n");
+            let droplistLogs = document.getElementById('droplist-logs');
+            
+            for(log of logs){
+                if (log === "") continue
 
-    let logsDisponiveis = xhttp.responseText;
+                let hora = log.split("-")[2].split(".")[0];
+                if (hora.split('h')[1].length == 1) hora = hora+'0';
 
-    let droplist = document.getElementById('droplist-logs');
-    let logsDivididos = logsDisponiveis.split('\n');
-    
-    for(let log of logsDivididos){
-        option = document.createElement("option");
-        option.value = log;
-        
-        if(log != ""){        
-            log = log.split("-");
-            let dia = log[1];
-            let hora = log[2].split(".")[0];
+                let opt = document.createElement('option');
+                opt.appendChild( document.createTextNode(hora) );
+                opt.value = log; 
+                droplistLogs.appendChild(opt); 
+            }
 
-            option.text = `Dia ${dia} ${hora}`;
-            droplist.add(option);
+        }).catch(
+        err => {
+            alert('Dados não enviados ' + err),
+                enviado = false
         }
-    }
+    )
 }
 
-async function mudarLogExibido(){
+function obterDataSelecionada(){
+    let data = document.getElementById("data-logs").value
+    console.log(data);
+
+    carregarLogsParaDroplist(data)
+}
+
+async function obterLogSelecionado(){
+
     let droplist = document.getElementById('droplist-logs');
     let logSelecionado = droplist.options[droplist.selectedIndex].value;
 
@@ -220,7 +232,8 @@ async function mudarLogExibido(){
             pontosMapa = JSON.parse(mapa);
 
             for(let feature of pontosMapa.features){
-                let coordenadas = ol.proj.transform([feature.geometry.coordinates[0],feature.geometry.coordinates[1]], 'EPSG:4326','EPSG:3857');
+                let coordenadas = ol.proj.transform([feature.geometry.coordinates[0],feature.geometry.coordinates[1]], 
+                                        'EPSG:4326','EPSG:3857');
                 
                 let featureMapa = new ol.Feature({
                     geometry: new ol.geom.Point([coordenadas[0],coordenadas[1]]),
