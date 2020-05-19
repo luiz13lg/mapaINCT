@@ -39,7 +39,7 @@ const shapeOffline = new ol.style.RegularShape({
         width: 1.2
     }),
     points: 3,
-    radius: 10
+    radius: 10,
 });
 const shapeOnline1h = new ol.style.RegularShape({
     fill: new ol.style.Fill({
@@ -64,39 +64,87 @@ const shapeOnline2h = new ol.style.RegularShape({
     radius: 10
 });
 
-const estiloOnline1h = new ol.style.Style({
-    image: shapeOnline1h
-})
-const estiloOnline2h = new ol.style.Style({
-    image: shapeOnline2h
-})
-
-const estiloOffline = new ol.style.Style({
-    image: shapeOffline
-})
+const estiloDaEstacaoOffline = function(feature){
+    let styles = [];
+    let nomeEstacao = feature.get("Station");
+    styles.push(
+        new ol.style.Style({
+            image: shapeOffline,
+            text: 
+                new ol.style.Text({
+                    font: 'bold 14px sans-serif',
+                    text: nomeEstacao,
+                    textBaseline: 'top',
+                    offsetY: 8,
+                    backgroundFill: new ol.style.Fill({
+                        color: 'rgba(250, 196, 120,0.5)'
+                    }),
+                    padding: [2,0,0,2]
+                })
+        })
+    );
+    return styles;
+}
 
 const estiloDaEstacao = function(feature){
+    let styles = [];
     let status = feature.get("Status");
+    let nomeEstacao = feature.get("Station");
 
-    if (status == "Online"){
+    let texto = new ol.style.Text({
+        font: 'bold 14px sans-serif',
+        text: nomeEstacao,
+        textBaseline: 'top',
+        offsetY: 8,
+        backgroundFill: new ol.style.Fill({
+            color: 'rgba(250, 196, 120,0.5)'
+        }),
+        padding: [2,0,0,2]
+    })
+
+    if (status == "Online" && feature.get("Received") != ""){
         let horaAtual = new Date().getHours();
-        let diaAtual = new Date().getDate();
+        let diaAtual = new Date().getDate(); 
+        let horaString = feature.get("Received").split(" ");
+        let diaRecebido = parseInt(horaString[1]);
+        console.log(horaString);
+        if(diaAtual - diaRecebido == 0){    //se dados sao do mesmo dia
+            if(horaString.length == 3){     //se formato de hora esta certo
+                horaString = horaString[2].split(":");
+                let horaRecebida = parseInt(horaString[0]);
 
-        if(feature.get("Received") != ""){
-            let horaString = feature.get("Received").split(" ");
-            let diaRecebido = parseInt(horaString[1]);
-
-            if(diaAtual - diaRecebido == 0){    //se dados sao do mesmo dia
-                if(horaString.length == 3){     //se formato de hora esta certo
-                    horaString = horaString[2].split(":");
-                    let horaRecebida = parseInt(horaString[0]);
-
-                    (horaAtual - horaRecebida == 0 || horaAtual - horaRecebida == 1) ? feature.setStyle([estiloOnline1h]) : feature.setStyle([estiloOnline2h]);
+                if(horaAtual - horaRecebida <= 1){
+                    styles.push(
+                        new ol.style.Style({
+                            image: shapeOnline1h,
+                            text: texto
+                        })
+                    );
+                }else{
+                    styles.push(
+                        new ol.style.Style({
+                            image: shapeOnline2h,
+                            text: texto
+                        })
+                    );
                 }
             }
-            else feature.setStyle([estiloOnline2h]);
-        } else feature.setStyle([estiloOnline2h]);
-    }else feature.setStyle([estiloOffline])
+        }else{
+            styles.push(
+                new ol.style.Style({
+                    image: shapeOnline2h,
+                    text: texto
+                })
+            );
+        }
+    }else 
+        styles.push(
+            new ol.style.Style({
+                image: shapeOffline,
+                text: texto
+            })
+        );
+    return styles
 }
 
 let marcadoresLayer = new ol.layer.VectorImage({
@@ -114,7 +162,7 @@ let marcadoresLayerDesativados = new ol.layer.VectorImage({
         format: new ol.format.GeoJSON(),
     }),
     visible: true,
-    style: estiloDaEstacao
+    style: estiloDaEstacaoOffline
 })
 
 map.addLayer(marcadoresLayer);
@@ -127,17 +175,19 @@ const size = document.getElementById('Size');
 const received = document.getElementById('Received');
 const status = document.getElementById('Status');
 
+const containerOverlayStation = document.querySelector('.containerOverlayStation');
+const NameStation = document.getElementById('name-station');
+
 const overlayLayer = new ol.Overlay({
     element: containerOverlay
 });
 map.addOverlay(overlayLayer);
 
-map.on("click",(e)=>{
+map.on("click",(e)=>{ 
     overlayLayer.setPosition(undefined);
     map.forEachFeatureAtPixel(e.pixel, function(feature, layer){
         let coordenadaClicada = e.coordinate;
         overlayLayer.setPosition(coordenadaClicada);
-        console.log(feature);
         station.innerHTML = feature.get("Station");
         status.innerHTML = feature.get("Status");
         
@@ -146,7 +196,6 @@ map.on("click",(e)=>{
         feature.get("Received") != undefined ? received.innerHTML = feature.get("Received") : received.innerHTML = "";
     })
 })
-
 definirLimiteData()
 
 function definirLimiteData(){
