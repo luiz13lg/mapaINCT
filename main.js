@@ -198,7 +198,7 @@ function ocultarLayerEstacoesAtivadas(){
 
 function obterDataSelecionada(){
     let data = document.getElementById("data-logs").value;
-    carregarLogsParaDroplist(data);
+    if(data != "") carregarLogsParaDroplist(data);
 }
 
 async function carregarLogsParaDroplist(data){
@@ -238,7 +238,6 @@ async function carregarLogsParaDroplist(data){
 }
 
 async function obterLogSelecionado(){
-
     let droplist = document.getElementById('droplist-logs');
     let logSelecionado = droplist.options[droplist.selectedIndex].value;
     droplist.options[0].removeAttribute('selected')
@@ -291,17 +290,15 @@ async function obterLogSelecionado(){
                     visible: true,
                     style: estiloDaEstacao
                 })
-                map.addLayer(marcadoresLayer);
-
-            //setando o filtro caso ele esteja desativado
-                let value = document.getElementById('estacoes-ativadas');
-                value.checked ? value.checked = true : value.checked = true;
-
+                map.addLayer(marcadoresLayer);  
             }).catch(
-            err => {
-                alert('Dados não enviados ' + err),
+                err => {
+                    alert('Dados não enviados ' + err),
                     enviado = false
-            }
-        )
-    }
+                }
+            )
+        }//else
+    //setando o filtro caso ele esteja desativado
+    let value = document.getElementById('estacoes-ativadas');
+    value.checked ? value.checked = true : value.checked = true;
 }

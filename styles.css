@@ -79,3 +79,21 @@
   height: auto;
   margin-right: 5px;
 }
+
+input[type="date"] {
+  background-color: white;
+  outline: none;
+  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  outline: none;
+  border-style: ridge;
+  border-radius: 5px;
+}
+
+input[type="date"]::-webkit-inner-spin-button {
+  height: 28px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  font-size: 10px;
+  color: blue;
+}

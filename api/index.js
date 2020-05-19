@@ -7,19 +7,15 @@ const cors = require('cors');
 
 app.use(cors());
 const bodyParser = require('body-parser');
-app.use(bodyParser.json({limit: '1mb'}));  
+app.use(bodyParser.json({limit: '1mb'}));
 
-let arquivoEstacoes = fs.readFileSync('marcadores.json', 'utf-8');
-const dadosEstacoes = JSON.parse(arquivoEstacoes);
+const dadosEstacoes = JSON.parse(fs.readFileSync('marcadores.json', 'utf-8'));
 
-let arquivoEstacoesInativas = fs.readFileSync('marcadores-inativos.json', 'utf-8');
-const dadosEstacoesInativas = JSON.parse(arquivoEstacoesInativas);
-
-app.listen(3013,() => {                //servidor startado
+app.listen(3013,() => {
 	console.log('API rodando na porta: 3013')
-})
+});
 
-app.get('/', cors(), function (req, res) {          //resposta ao get
+app.get('/', cors(), function (req, res) {          
     console.log("Recuperando log atual.");
     // let teste = shell.exec("zabbix &",{silent:true}).stdout;
     try{
@@ -29,63 +25,70 @@ app.get('/', cors(), function (req, res) {          //resposta ao get
 		data = converterJSON(data);
         res.write(data);
     }catch (err) {
-        console.error("Erro ao obter o log das estações ativas:");
-		console.log(err);
+        console.error("Erro ao obter o log das estações ativas.");
 		res.write(err);
     }
     res.end();
 });
 
-app.get('/desativados', cors(), function (req, res) {          //resposta ao get
+app.get('/desativados', cors(), function (req, res) {          
     console.log("acessado desativados.");
     try{
 		let data = fs.readFileSync('marcadores-inativos.json', 'utf-8');
         res.write(data);
     }catch (err) {
-        console.error("Erro ao obter o log das estações inativas:");
-		console.log(err);
+        console.error("Erro ao obter o log das estações inativas.");
 		res.write(err);
     }
     res.end();
 });
 
-app.post('/obterLogsDisponiveis', cors(), function (req, res) {          //resposta ao get
+app.post('/obterLogsDisponiveis', cors(), function (req, res) {          
     console.log("acessado logs disponíveis.");
     try{
-		data = req.body.data.split("-"); // ano-mes-dia
-
-		let ano = data[0]
-		let mes = data[1];
-		let dia = data[2];
+		let ExpReg = new RegExp("[0-9][0-9][0-9][0-9]-[0-9]?[0-9]?-[0-9]?[0-9]?");
 		
-		if(mes.charAt(0) === '0') mes = mes.charAt(1) 
+		if(ExpReg.test(req.body.data)){
+			data = req.body.data.split("-"); // ano-mes-dia
 
-		logsDisponiveis = shell.exec(`ls logs/${ano}/${mes}/${dia}/`,{silent:true}).stdout;
-		res.write(logsDisponiveis);
+			let ano = data[0]
+			let mes = data[1];
+			let dia = data[2];
+
+			if(mes.charAt(0) === '0') mes = mes.charAt(1) 
+
+			logsDisponiveis = shell.exec(`ls logs/${ano}/${mes}/${dia}/`,{silent:true}).stdout;
+			res.write(logsDisponiveis);
+		}else res.write("Erro na validação da data.")
 
     }catch (err) {
-        console.error("Erro ao obter lista de logs");
+        console.error("Erro ao obter lista de logs:");
 		console.log(err);
 		res.write(err);
     }
     res.end();
 });
 
-app.post('/obterLogSelecionado', cors(), function (req, res) {          //resposta ao get
+app.post('/obterLogSelecionado', cors(), function (req, res) {
     console.log("acessado logs disponíveis: " + req.body.log);
     try{
-		let data = req.body.log.split(" ")[0].split("-");
-		let nomeArquivo = req.body.log.split(" ")[1];
-
-		let ano = data[0]
-		let mes = data[1];
-		let dia = data[2];
+		let ExpReg = new RegExp("[0-9][0-9][0-9][0-9]-[0-9]?[0-9]?-[0-9]?[0-9]?");
+		let data = req.body.log.split(" ")[0];
 		
-		if(mes.charAt(0) === '0') mes = mes.charAt(1) 
-
-		let marcadores = fs.readFileSync(`logs/${ano}/${mes}/${dia}/${nomeArquivo}`, 'utf-8');
-		marcadores = converterJSON(marcadores);
-		res.write(marcadores);
+		if(ExpReg.test(data)){
+			data = data.split("-");
+			let nomeArquivo = req.body.log.split(" ")[1];
+			
+			let ano = data[0];
+			let mes = data[1];
+			let dia = data[2];
+			
+			if(mes.charAt(0) === '0') mes = mes.charAt(1);
+			
+			let marcadores = fs.readFileSync(`logs/${ano}/${mes}/${dia}/${nomeArquivo}`, 'utf-8');
+			marcadores = converterJSON(marcadores);
+			res.write(marcadores);
+		}else res.write("Erro de data ao obter log selecionado.");
     }catch (err) {
         console.error("Erro ao obter lista de logs");
 		console.log(err);
