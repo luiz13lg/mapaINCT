@@ -1,0 +1,21 @@
+{
+    "DMC1": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-51.407967, -22.122928]}",
+    "MOR2": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-51.413052, -22.127756]}",
+    "FRTZ": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-38.577635, -3.744554]}",
+    "INCO": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-46.328114, -22.318548]}",
+    "MAC3": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-41.808178, -22.401163]}",
+    "PALM": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-48.311299, -10.199649]}",
+    "POAL": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-51.119683, -30.073896]}",
+    "PRU2": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-51.407079, -22.122038]}",
+    "PRU4": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-51.408526, -22.120081]}",
+    "SJCE": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-45.859743, -23.207528]}",
+    "SJCU": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-45.956592, -23.210589]}",
+    "SLMA": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-44.212290, -2.593464]}",
+    "SPBO": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-48.432301, -22.852467]}",
+    "STMC": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-47.523798, -18.724027]}",
+    "STNT": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-35.196212, -5.840586]}",
+    "STSH": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-54.344363, -24.846995]}",
+    "STSN": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-55.544692, -11.829394]}",
+    "STTF": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-64.724326, -3.377923]}",		
+    "UFBA": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-38.510659, -12.999826]}"
+}

@@ -17,7 +17,7 @@ app.listen(3013,() => {
 
 app.get('/', cors(), function (req, res) {          
     console.log("Recuperando log atual.");
-    // let teste = shell.exec("zabbix &",{silent:true}).stdout;
+    
     try{
 		let nomeLog = obterUltimoLog();
 		let data = fs.readFileSync(nomeLog, 'utf-8');
@@ -243,6 +243,5 @@ cron.schedule("0 */30 * * * *", function() {
 	let minutos = data.getMinutes();
 	console.log("Log gerado");
 
-	//executar zabbix aqui
-	shell.exec(`ls > logs/${ano}/${mes}/${dia}/log-${dia}-${hora}h${minutos}.txt`,{silent:true}).stdout;
+	shell.exec(`zabbix_get -s 200.145.185.149 -k lastFile > logs/${ano}/${mes}/${dia}/log-${dia}-${hora}h${minutos}.txt`,{silent:true}).stdout;
   });
