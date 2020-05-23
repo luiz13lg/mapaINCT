@@ -103,12 +103,11 @@ const estiloDaEstacao = function(feature){
     })
 
     if (status == "Online" && feature.get("Received") != ""){
-        let horaAtual = new Date().getHours();
-        let diaAtual = new Date().getDate(); 
         let horaString = feature.get("Received").split(" ");
         let diaRecebido = parseInt(horaString[1]);
-        console.log(horaString);
-        if(diaAtual - diaRecebido == 0){    //se dados sao do mesmo dia
+        let mesRecebido = valorMes(horaString[0]);
+        
+        if(mesAtual - mesRecebido == 0 && diaAtual - diaRecebido == 0){    //se dados sao do mesmo dia
             if(horaString.length == 3){     //se formato de hora esta certo
                 horaString = horaString[2].split(":");
                 let horaRecebida = parseInt(horaString[0]);
@@ -175,6 +174,11 @@ const size = document.getElementById('Size');
 const received = document.getElementById('Received');
 const status = document.getElementById('Status');
 
+let horaAtual;
+let diaAtual;
+let mesAtual;
+
+
 const containerOverlayStation = document.querySelector('.containerOverlayStation');
 const NameStation = document.getElementById('name-station');
 
@@ -196,7 +200,30 @@ map.on("click",(e)=>{
         feature.get("Received") != undefined ? received.innerHTML = feature.get("Received") : received.innerHTML = "";
     })
 })
-definirLimiteData()
+definirLimiteData();
+definirDataHoraParaEstilo(true);
+
+function definirDataHoraParaEstilo(atual, dataLog){
+    if(atual){
+        horaAtual = new Date().getHours();
+        diaAtual = new Date().getDate();
+        mesAtual = new Date().getMonth() + 1;
+    }
+    else{
+        console.log(dataLog);
+        let data = dataLog.split(" ")[0].split("-");
+        let hora = dataLog.split(" ")[1].split("-")[2].split(".")[0].split('h')[0];
+        
+        let ano = data[0];
+        let mes = data[1];
+        let dia = data[2];
+        
+        horaAtual = parseInt(hora);
+        diaAtual = parseInt(dia);
+        mesAtual = parseInt(mes);
+        anoAtual = parseInt(ano);
+    }
+}
 
 function definirLimiteData(){
     var data = new Date();
@@ -260,6 +287,7 @@ async function carregarLogsParaDroplist(data){
     }).then(response => response.text())
         .then(listaLogs => {
             let logs = listaLogs.split("\n");
+            
             let droplistLogs = document.getElementById('droplist-logs');
             
             for (let posicaoAtual = droplistLogs.length - 1; posicaoAtual > 0; posicaoAtual--){
@@ -268,8 +296,8 @@ async function carregarLogsParaDroplist(data){
 
             for(log of logs){
                 if (log === "") continue
-
-                let hora = log.split("-")[2].split(".")[0];
+                
+                let hora = log.split("-")[4].split(".")[0];
                 if (hora.split('h')[1].length == 1) hora = hora+'0';
 
                 let opt = document.createElement('option');
@@ -290,6 +318,8 @@ async function obterLogSelecionado(){
     let droplist = document.getElementById('droplist-logs');
     let logSelecionado = droplist.options[droplist.selectedIndex].value;
     droplist.options[0].removeAttribute('selected')
+
+    definirDataHoraParaEstilo(false, logSelecionado);
 
     if (logSelecionado === "-"){
         map.removeLayer(marcadoresLayer);
@@ -350,4 +380,33 @@ async function obterLogSelecionado(){
     //setando o filtro caso ele esteja desativado
     let value = document.getElementById('estacoes-ativadas');
     value.checked ? value.checked = true : value.checked = true;
+}
+
+function valorMes(mes){
+    switch(mes){
+        case 'Jan':
+            return 1;
+        case 'Feb':
+            return 2;
+        case 'Mar':
+            return 3;
+        case 'Apr':
+            return 4;
+        case 'May':
+            return 5;
+        case 'Jun':
+            return 6;
+        case 'Jul':
+            return 7;
+        case 'Aug':
+            return 8;
+        case 'Sep':
+            return 9;
+        case 'Oct':
+            return 10;
+        case 'Nov':
+            return 11;
+        case 'Dec':
+            return 12;
+    }
 }

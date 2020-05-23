@@ -11,13 +11,12 @@ app.use(bodyParser.json({limit: '1mb'}));
 
 const dadosEstacoes = JSON.parse(fs.readFileSync('marcadores.json', 'utf-8'));
 
-app.listen(3013,() => {
+app.listen(3013, '0.0.0.0',() => {
 	console.log('API rodando na porta: 3013')
 });
 
 app.get('/', cors(), function (req, res) {          
     console.log("Recuperando log atual.");
-    
     try{
 		let nomeLog = obterUltimoLog();
 		let data = fs.readFileSync(nomeLog, 'utf-8');
@@ -230,8 +229,8 @@ function obterUltimoLog(){
 	let hora = data.getHours();
 	let minutos = data.getMinutes();
 
-	if(minutos >= 30) return `logs/${ano}/${mes}/${dia}/log-${dia}-${hora}h30.txt`
-		else return `logs/${ano}/${mes}/${dia}/log-${dia}-${hora}h0.txt`
+	if(minutos >= 30) return `logs/${ano}/${mes}/${dia}/log-${ano}-${mes}-${dia}-${hora}h30.txt`
+		else return `logs/${ano}/${mes}/${dia}/log-${ano}-${mes}-${dia}-${hora}h0.txt`
 }
 
 cron.schedule("0 */30 * * * *", function() {
@@ -243,5 +242,27 @@ cron.schedule("0 */30 * * * *", function() {
 	let minutos = data.getMinutes();
 	console.log("Log gerado");
 
-	shell.exec(`zabbix_get -s 200.145.185.149 -k lastFile > logs/${ano}/${mes}/${dia}/log-${dia}-${hora}h${minutos}.txt`,{silent:true}).stdout;
+	shell.exec(`zabbix_get -s 200.145.185.149 -k lastFile > logs/${ano}/${mes}/${dia}/log-${ano}-${mes}-${dia}-${hora}h${minutos}.txt`,{silent:true}).stdout;
   });
+
+cron.schedule("0 0 0 * * *", function() {  //criando diretorio para logs diarios
+	let data = new Date();
+	let ano = data.getFullYear();
+	let mes = data.getMonth()+1;
+	let dia = data.getDate();
+	
+	console.log("Pasta para armazenar logs diários criada");
+
+	shell.exec(`mkdir /logs/${ano}/${mes}/${dia}`,{silent:true}).stdout;
+});
+
+cron.schedule("0 0 1 * *", function() {
+	let data = new Date();
+	let ano = data.getFullYear();
+	let mes = data.getMonth()+1;
+	
+	console.log("Pasta para armazenar dias criada");
+
+	shell.exec(`mkdir /logs/${ano}/${mes}`,{silent:true}).stdout;
+});
+  
