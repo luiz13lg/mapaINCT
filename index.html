@@ -14,10 +14,13 @@
         </select>
         <div class="divInput"><input type="checkbox" checked id="estacoes-desativadas" onchange="ocultarLayerEstacoesDesativadas()"> Estações Desativadas</div>
         <div class="divInput"><input type="checkbox" checked id="estacoes-ativadas" onchange="ocultarLayerEstacoesAtivadas()"> Estações em Funcionamento</div>
+        
+        <div class="divBotao">
+            <button id="botaoAtualizar" onclick="atualizarLayerMarcadores()"><img src="./img/botao-atualizar.png" id="imagemBotaoAtualizar"></button>
+        </div>
     </div>
 
     <div id="js-map"></div>
-    <button id="botaoAtualizar" onclick="atualizarLayerMarcadores()"><img src="./img/botao-atualizar.png" id="imagemBotaoAtualizar"></button>
     
     <div id="legenda">
         <p><img src="./img/triangulo-verde.png" id="imagemLegenda">Atualizado há menos de 1h</p>

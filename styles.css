@@ -62,11 +62,16 @@
 }
 
 #botaoAtualizar{
-  position: absolute;
   background-color: unset;
-  border-color: unset;
+  border: none;
   top: 5px;
   right: 20px;
+  cursor: pointer;
+}
+
+.divBotao{
+  margin-left:auto; 
+  margin-right:0;
 }
 
 #imagemBotaoAtualizar{
@@ -87,6 +92,8 @@ input[type="date"] {
   outline: none;
   border-style: ridge;
   border-radius: 5px;
+  padding: 5px;
+  border-width: thin;
 }
 
 input[type="date"]::-webkit-inner-spin-button {
