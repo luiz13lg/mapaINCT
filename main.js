@@ -148,7 +148,7 @@ const estiloDaEstacao = function(feature){
 
 let marcadoresLayer = new ol.layer.VectorImage({
     source: new ol.source.Vector({
-        url: "http://localhost:3013",
+        url: "http://inct-gnss-navaer.fct.unesp.br/marcadores",
         format: new ol.format.GeoJSON(),
     }),
     visible: true,
@@ -157,7 +157,7 @@ let marcadoresLayer = new ol.layer.VectorImage({
 
 let marcadoresLayerDesativados = new ol.layer.VectorImage({
     source: new ol.source.Vector({
-        url: "http://localhost:3013/desativados",
+        url: "http://inct-gnss-navaer.fct.unesp.br/marcadores-desativados",
         format: new ol.format.GeoJSON(),
     }),
     visible: true,
@@ -187,17 +187,17 @@ const overlayLayer = new ol.Overlay({
 });
 map.addOverlay(overlayLayer);
 
-map.on("click",(e)=>{ 
+map.on("pointermove",(e)=>{
     overlayLayer.setPosition(undefined);
     map.forEachFeatureAtPixel(e.pixel, function(feature, layer){
         let coordenadaClicada = e.coordinate;
         overlayLayer.setPosition(coordenadaClicada);
-        station.innerHTML = feature.get("Station");
-        status.innerHTML = feature.get("Status");
-        
-        feature.get("Last") != undefined ? last.innerHTML = feature.get("Last") : last.innerHTML = "";
-        feature.get("Size") != undefined ? size.innerHTML = feature.get("Size") : size.innerHTML = "";
-        feature.get("Received") != undefined ? received.innerHTML = feature.get("Received") : received.innerHTML = "";
+
+        station.innerHTML =  retornarCidade(feature.get("Station"));
+        status.innerHTML = `<br> Status: ${feature.get("Status")}`;        
+        // feature.get("Last") != undefined ? last.innerHTML = feature.get("Last") : last.innerHTML = "";
+        feature.get("Size") != undefined ? size.innerHTML = `<br> Tamanho do Arquivo: ${feature.get("Size")}` : size.innerHTML = "";
+        feature.get("Received") != undefined ? received.innerHTML = `<br> Data & Hora: ${feature.get("Received")}` : received.innerHTML = "";
     })
 })
 definirLimiteData();
@@ -246,7 +246,7 @@ function atualizarLayerMarcadores(){
 
     marcadoresLayer = new ol.layer.VectorImage({
         source: new ol.source.Vector({
-            url: 'http://localhost:3013',
+            url: 'http://inct-gnss-navaer.fct.unesp.br/marcadores',
             format: new ol.format.GeoJSON(),
         }),
         visible: true,
@@ -278,7 +278,7 @@ function obterDataSelecionada(){
 }
 
 async function carregarLogsParaDroplist(data){
-    fetch('http://localhost:3013/obterLogsDisponiveis', {
+    await fetch('http://inct-gnss-navaer.fct.unesp.br/lista-logs', {
         method: 'POST',
         body: JSON.stringify({
             data: data
@@ -296,8 +296,7 @@ async function carregarLogsParaDroplist(data){
 
             for(log of logs){
                 if (log === "") continue
-                
-                let hora = log.split("-")[4].split(".")[0];
+                let hora = log.split("-")[2].split(".")[0];
                 if (hora.split('h')[1].length == 1) hora = hora+'0';
 
                 let opt = document.createElement('option');
@@ -305,13 +304,14 @@ async function carregarLogsParaDroplist(data){
                 opt.value = data+" "+log; 
                 droplistLogs.appendChild(opt); 
             }
-
         }).catch(
         err => {
             alert('Dados não enviados ' + err),
                 enviado = false
         }
     )
+    // sortlist();
+
 }
 
 async function obterLogSelecionado(){
@@ -325,7 +325,7 @@ async function obterLogSelecionado(){
         map.removeLayer(marcadoresLayer);
         marcadoresLayer = new ol.layer.VectorImage({
             source: new ol.source.Vector({
-                url: "http://localhost:3013",
+                url: "http://inct-gnss-navaer.fct.unesp.br/marcadores",
                 format: new ol.format.GeoJSON(),
             }),
             visible: true,
@@ -333,7 +333,7 @@ async function obterLogSelecionado(){
         })
         map.addLayer(marcadoresLayer);
     } else{
-        await fetch('http://localhost:3013/obterLogSelecionado', {
+        await fetch('http://inct-gnss-navaer.fct.unesp.br/log-selecionado', {
             method: 'POST',
             body: JSON.stringify({
                 log: logSelecionado
@@ -408,5 +408,63 @@ function valorMes(mes){
             return 11;
         case 'Dec':
             return 12;
+    }
+}
+
+function sortlist() {
+    var lb = document.getElementById('droplist-logs');
+    arr1a9 = new Array();
+    arr10a24 = new Array();
+    arrTexts = new Array();
+    
+    for(i=0; i<lb.length; i++)  {
+        if(lb.options[i].text.length == 5)
+            arr10a24[i] = lb.options[i].text;
+        else
+            arr1a9[i] = lb.options[i].text;
+    }
+    
+    arr1a9.sort();
+    arr10a24.sort();
+    arrTexts = arr1a9.concat(arr10a24);
+    console.log(arrTexts);
+
+    for(i=0; i<lb.length; i++)  {
+      lb.options[i].text = arrTexts[i];
+      lb.options[i].value = arrTexts[i];
+    }
+}
+
+function retornarCidade(nomeEstacao){
+    switch(nomeEstacao){
+        case "DMC1": return "Presidente Prudente - SP";
+        case "FRTZ": return "Fortaleza - CE";
+        case "INCO": return "Inconfidentes - MG";
+        case "MAC3": return "Macaé - RJ";
+        case "MOR2": return "Presidente Prudente - SP";
+        case "PALM": return "Palmas - TO";
+        case "POAL": return "Porto Alegre - RS";
+        case "PRU2": return "Presidente Prudente - SP";
+        case "PRU4": return "Presidente Prudente - SP";
+        case "SJCE": return "São José dos Campos - SP";
+        case "SJCU": return "São José dos Campos - SP";
+        case "SLMA": return "São Luís - MA";
+        case "SPBO": return "Botucatu - SP";
+        case "STMC": return "Monte Carmelo - MG";
+        case "STNT": return "Natal - RN";
+        case "STSN": return "Sinop - MT";
+        case "STSH": return "Santa Helena - PR";
+        case "UFBA": return "Salvador - BA";
+
+        case "GALH": return "Presidente Prudente - SP";
+        case "MAC2": return "Macaé - RJ";
+        case "MACA": return "Macaé - RJ";
+        case "MAN2": return "Manaus - AM";
+        case "MAN3": return "Manaus - AM";
+        case "MANA": return "Manaus - AM";
+        case "MORU": return "Presidente Prudente - SP";
+        case "PRU1": return "Presidente Prudente - SP";
+        case "PRU3": return "Presidente Prudente - SP";
+        case "SJCI": return "São José dos Campos - SP";
     }
 }
