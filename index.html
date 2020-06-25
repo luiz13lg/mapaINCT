@@ -12,11 +12,14 @@
         <select name="droplist-logs" id="droplist-logs" onchange="obterLogSelecionado()">
             <option value="-" selected>Log atual</option>
         </select>
+        
         <div class="divInput"><input type="checkbox" checked id="estacoes-desativadas" onchange="ocultarLayerEstacoesDesativadas()"> Estações Desativadas</div>
         <div class="divInput"><input type="checkbox" checked id="estacoes-ativadas" onchange="ocultarLayerEstacoesAtivadas()"> Estações em Funcionamento</div>
-        
-        <div class="divBotao">
-            <button id="botaoAtualizar" onclick="atualizarLayerMarcadores()"><img src="./img/botao-atualizar.png" id="imagemBotaoAtualizar"></button>
+
+        <div class="divIteracao">
+            <input type="date" name="data-logs" id="data-um" min="2020-05-17">
+            <input type="date" name="data-logs" id="data-dois" min="2020-05-17">
+            <button id="botaoIteracao" onclick="iterarEntreDatas()"><img src="./img/botao-proximo.png" id="imagemBotaoProximo"></button>
         </div>
     </div>
 

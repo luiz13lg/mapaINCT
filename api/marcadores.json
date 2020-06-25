@@ -17,5 +17,6 @@
     "STSH": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-54.344363, -24.846995]}",
     "STSN": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-55.544692, -11.829394]}",
     "STTF": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-64.724326, -3.377923]}",		
-    "UFBA": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-38.510659, -12.999826]}"
+    "UFBA": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-38.510659, -12.999826]}",
+    "STBR": "\"geometry\":{\"type\":\"Point\",\"coordinates\":[-49.236136, -28.831965]}"
 }

@@ -146,6 +146,26 @@ const estiloDaEstacao = function(feature){
     return styles
 }
 
+const estiloMapaMag = new ol.style.Style({
+    image: new ol.style.RegularShape({
+        stroke: new ol.style.Stroke({
+            color:[30, 30, 31, 1],
+            width: 7
+        }),
+        points: 1,
+        radius: 10,
+    })
+})
+
+let mapaMagLayer = new ol.layer.VectorImage({
+    source: new ol.source.Vector({
+        url: "./libs/MapaMag.geojson",
+        format: new ol.format.GeoJSON(),
+    }),
+    visible: true,
+    style: estiloMapaMag
+});
+
 let marcadoresLayer = new ol.layer.VectorImage({
     source: new ol.source.Vector({
         url: "http://inct-gnss-navaer.fct.unesp.br/marcadores",
@@ -164,6 +184,7 @@ let marcadoresLayerDesativados = new ol.layer.VectorImage({
     style: estiloDaEstacaoOffline
 })
 
+map.addLayer(mapaMagLayer);
 map.addLayer(marcadoresLayer);
 map.addLayer(marcadoresLayerDesativados);
 
@@ -191,19 +212,20 @@ map.on("pointermove",(e)=>{
     overlayLayer.setPosition(undefined);
     map.forEachFeatureAtPixel(e.pixel, function(feature, layer){
         let coordenadaClicada = e.coordinate;
-        overlayLayer.setPosition(coordenadaClicada);
-
-        station.innerHTML =  retornarCidade(feature.get("Station"));
-        status.innerHTML = `<br> Status: ${feature.get("Status")}`;        
-        // feature.get("Last") != undefined ? last.innerHTML = feature.get("Last") : last.innerHTML = "";
-        feature.get("Size") != undefined ? size.innerHTML = `<br> Tamanho do Arquivo: ${feature.get("Size")}` : size.innerHTML = "";
-        feature.get("Received") != undefined ? received.innerHTML = `<br> Data & Hora: ${feature.get("Received")}` : received.innerHTML = "";
+        
+        if(feature.get("Station") != undefined ){
+            overlayLayer.setPosition(coordenadaClicada);
+            station.innerHTML =  retornarCidade(feature.get("Station"));
+            status.innerHTML = `<br> Status: ${feature.get("Status")}`;
+            feature.get("Size") != undefined ? size.innerHTML = `<br> Tamanho do Arquivo: ${feature.get("Size")}` : size.innerHTML = "";
+            feature.get("Received") != undefined ? received.innerHTML = `<br> Data & Hora: ${feature.get("Received")}` : received.innerHTML = "";
+        }
     })
 })
 definirLimiteData();
 definirDataHoraParaEstilo(true);
 
-function definirDataHoraParaEstilo(atual, dataLog){
+function definirDataHoraParaEstilo(atual, dataLog){     //funcao para definir a hora e a data para comparar com os logs das estacoes
     if(atual){
         horaAtual = new Date().getHours();
         diaAtual = new Date().getDate();
@@ -241,26 +263,145 @@ function definirLimiteData(){
     document.getElementById('data-logs').setAttribute('max', dataMaxima);
 }
 
-function atualizarLayerMarcadores(){
+async function iterarEntreDatas(){
     map.removeLayer(marcadoresLayer);
 
-    marcadoresLayer = new ol.layer.VectorImage({
-        source: new ol.source.Vector({
-            url: 'http://inct-gnss-navaer.fct.unesp.br/marcadores',
-            format: new ol.format.GeoJSON(),
+    let dataBuscada;
+
+    let data1 = document.getElementById("data-um").value.replace(/-/g,"/");
+    let data2 = document.getElementById("data-dois").value.replace(/-/g,"/");
+
+    let dataPartida = new Date(data1);
+    let dataParada = new Date(data2);
+
+    for ( ; dataPartida <= dataParada; dataPartida.setDate(dataPartida.getDate() + 1)) {    //iterando sob as datas selecionadas
+        dataBuscada = `${dataPartida.getFullYear()}-${dataPartida.getMonth()+1}-${dataPartida.getDate()}`; //form data para pesquisa
+
+        await carregarLogs(dataBuscada);
+    }
+
+    // carregarLogs(data1);
+    // console.log(data1);
+
+    // marcadoresLayer = new ol.layer.VectorImage({
+    //     source: new ol.source.Vector({
+    //         url: 'http://inct-gnss-navaer.fct.unesp.br/marcadores',
+    //         format: new ol.format.GeoJSON(),
+    //     }),
+    //     visible: true,
+    //     style: estiloDaEstacao
+    // })
+
+    // map.addLayer(marcadoresLayer);
+
+    // let listaLogs = document.getElementById('droplist-logs');
+    // listaLogs.options[0].setAttribute('selected',true);
+
+    // let value = document.getElementById('estacoes-ativadas');
+    // value.checked ? value.checked = true : value.checked = true;
+}
+
+async function carregarLogs(data){
+    let log;
+    await fetch('http://inct-gnss-navaer.fct.unesp.br/lista-logs', {
+        method: 'POST',
+        body: JSON.stringify({
+            data: data
         }),
-        visible: true,
-        style: estiloDaEstacao
-    })
+        headers: { "Content-Type": "application/json" }
+    }).then(response => response.text())
+        .then(async listaLogs => {
+            let logs = listaLogs.split("\n");
+            
+            for(let aux = 0; aux < logs.length; aux++){
+                log = data+" "+logs[aux];
+                await obterLog(log);
+            }
+            
+        }).catch(
+        err => {
+            alert('Dados não enviados ' + err),
+                enviado = false
+        }
+    )
+}
 
-    map.addLayer(marcadoresLayer);
+async function obterLog(log){
 
-    let listaLogs = document.getElementById('droplist-logs');
-    listaLogs.options[0].setAttribute('selected',true);
+    // console.log(log+" | "+log.length);
+    if (log.length > 11){
+        definirDataHoraParaEstilo(false, log);
 
+        await fetch('http://inct-gnss-navaer.fct.unesp.br/log-selecionado', {
+            method: 'POST',
+            body: JSON.stringify({
+                log: log
+            }),
+            headers: { "Content-Type": "application/json" }
+        }).then( response => response.text())
+            .then(async mapa => {
+                let arrayFeatures = [];
+                pontosMapa = JSON.parse(mapa);
+
+                for(let feature of pontosMapa.features){
+                    let coordenadas = await ol.proj.transform([feature.geometry.coordinates[0],feature.geometry.coordinates[1]], 
+                                            'EPSG:4326','EPSG:3857');
+                    
+                    let featureMapa = new ol.Feature({
+                        geometry: new ol.geom.Point([coordenadas[0],coordenadas[1]]),
+                        Station: feature.properties.Station,
+                        Last: feature.properties.Last,
+                        Size: feature.properties.Size,
+                        Received: feature.properties.Received,
+                        Status: feature.properties.Status
+                    });
+                    arrayFeatures.push(featureMapa)
+                }
+                
+                map.removeLayer(marcadoresLayer);
+                
+                marcadoresLayer = new ol.layer.VectorImage({
+                    source: new ol.source.Vector({
+                        features: arrayFeatures
+                    }),
+                    visible: true,
+                    style: estiloDaEstacao
+                })
+                
+                map.addLayer(marcadoresLayer);  
+            }).catch(
+                err => {
+                    alert('Dados não enviados ' + err),
+                    enviado = false
+                }
+            )
+    }
+    //setando o filtro caso ele esteja desativado
     let value = document.getElementById('estacoes-ativadas');
     value.checked ? value.checked = true : value.checked = true;
 }
+
+
+// function atualizarLayerMarcadores(){
+//     map.removeLayer(marcadoresLayer);
+
+//     marcadoresLayer = new ol.layer.VectorImage({
+//         source: new ol.source.Vector({
+//             url: 'http://inct-gnss-navaer.fct.unesp.br/marcadores',
+//             format: new ol.format.GeoJSON(),
+//         }),
+//         visible: true,
+//         style: estiloDaEstacao
+//     })
+
+//     map.addLayer(marcadoresLayer);
+
+//     let listaLogs = document.getElementById('droplist-logs');
+//     listaLogs.options[0].setAttribute('selected',true);
+
+//     let value = document.getElementById('estacoes-ativadas');
+//     value.checked ? value.checked = true : value.checked = true;
+// }
 
 function ocultarLayerEstacoesDesativadas(){
     let value = document.getElementById('estacoes-desativadas');   
@@ -310,8 +451,6 @@ async function carregarLogsParaDroplist(data){
                 enviado = false
         }
     )
-    // sortlist();
-
 }
 
 async function obterLogSelecionado(){
@@ -321,7 +460,7 @@ async function obterLogSelecionado(){
 
     definirDataHoraParaEstilo(false, logSelecionado);
 
-    if (logSelecionado === "-"){
+    if (logSelecionado === "-"){        //pegando log atual
         map.removeLayer(marcadoresLayer);
         marcadoresLayer = new ol.layer.VectorImage({
             source: new ol.source.Vector({
@@ -332,7 +471,7 @@ async function obterLogSelecionado(){
             style: estiloDaEstacao
         })
         map.addLayer(marcadoresLayer);
-    } else{
+    } else{                 //pegando log de uma data especifica
         await fetch('http://inct-gnss-navaer.fct.unesp.br/log-selecionado', {
             method: 'POST',
             body: JSON.stringify({
@@ -455,6 +594,7 @@ function retornarCidade(nomeEstacao){
         case "STSN": return "Sinop - MT";
         case "STSH": return "Santa Helena - PR";
         case "UFBA": return "Salvador - BA";
+        case "STBR": return "Balneário Rincão - SC";
 
         case "GALH": return "Presidente Prudente - SP";
         case "MAC2": return "Macaé - RJ";
