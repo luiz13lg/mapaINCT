@@ -71,6 +71,11 @@
   border-radius: 5px;
 }
 
+#data-info{
+  margin: 0;
+  padding: 7px;
+}
+
 #botaoIteracao{
   background-color: unset;
   border: none;

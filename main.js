@@ -303,6 +303,7 @@ async function iterarEntreDatas(){
 
 async function carregarLogs(data){
     let log;
+
     await fetch('http://inct-gnss-navaer.fct.unesp.br/lista-logs', {
         method: 'POST',
         body: JSON.stringify({
@@ -316,6 +317,8 @@ async function carregarLogs(data){
             for(let aux = 0; aux < logs.length; aux++){
                 log = data+" "+logs[aux];
                 await obterLog(log);
+                addDataDoLog(log);
+                sleep(500);
             }
             
         }).catch(
@@ -324,6 +327,23 @@ async function carregarLogs(data){
                 enviado = false
         }
     )
+}
+
+function addDataDoLog(infoLog){
+    if(infoLog.length > 11){
+        let info = infoLog.split(" ");  //2020-6-2 log-2-23h30.txt
+        let data = info[0];             //2020-6-2 
+        let hora = info[1];             //log-2-23h30.txt
+
+        data = data.split("-");         //2020 6 2
+        hora = hora.split("-");         //log 2 23h30.txt
+        hora = hora[2].split(".");      //23h30 txt
+
+        if(hora[0].split("h")[1].length == 1)
+            document.getElementById("data-info").innerHTML = `${data[2]}/${data[1]}/${data[0]} | ${hora[0]}0`;
+        else
+            document.getElementById("data-info").innerHTML = `${data[2]}/${data[1]}/${data[0]} | ${hora[0]}`;
+    }
 }
 
 async function obterLog(log){
@@ -607,4 +627,12 @@ function retornarCidade(nomeEstacao){
         case "PRU3": return "Presidente Prudente - SP";
         case "SJCI": return "São José dos Campos - SP";
     }
+}
+
+function sleep(milliseconds) {
+    const date = Date.now();
+    let currentDate = null;
+    do{
+      currentDate = Date.now();
+    }while (currentDate - date < milliseconds);
 }
