@@ -5,6 +5,18 @@ const app = express();
 const cron = require("node-cron");
 const cors = require('cors');
 
+// const mariadb = require('mariadb');
+// const pool = mariadb.createPool({
+//      host: 'localhost', 
+//      user:'root', 
+// 	 password: 'lg132717',
+// 	 port: '3307',
+// 	 socketPath: "/var/run/mysqld/mysqld.sock",
+//      connectionLimit: 5
+// });
+
+// console.log(pool.query("select * from estacoes"));
+
 app.use(cors());
 const bodyParser = require('body-parser');
 app.use(bodyParser.json({limit: '1mb'}));
@@ -19,7 +31,7 @@ app.get('/', cors(), function (req, res) {
     console.log("Recuperando log atual.");
     try{
 		let nomeLog = obterUltimoLog();
-		let data = fs.readFileSync(nomeLog, 'utf-8');
+		let data = fs.readFileSync("logs/2020/5/23/log-2020-5-23-13h0.txt", 'utf-8');
 
 		data = converterJSON(data);
         res.write(data);
@@ -98,7 +110,17 @@ app.post('/obterLogSelecionado', cors(), function (req, res) {
 
 function converterJSON(string){
 	let primeiro_indice, segundo_indice = 0;
+	let verificadorDeLogNovo = 0, nmrDeEstacoes = 20, contadorDeEstacoes = 0, auxContadorDeEstacoes = 0;
 	let json = "\{\"type\":\"FeatureCollection\",\"features\":["
+
+	for(let aux = 0; aux < 6; aux++){
+		verificadorDeLogNovo = string.indexOf("<th>", verificadorDeLogNovo+1);
+	}
+	for(let aux = 0; aux < nmrDeEstacoes; aux++){
+		auxContadorDeEstacoes = string.indexOf("<tr><td>", auxContadorDeEstacoes+1);
+		if(auxContadorDeEstacoes == -1) break;
+		contadorDeEstacoes++;
+	}
 
 	primeiro_indice = string.indexOf('<tr><td>',primeiro_indice);
 	segundo_indice = string.indexOf('</td></tr>',segundo_indice);
@@ -108,42 +130,8 @@ function converterJSON(string){
 	let estacao;
 	
 	json += "\{\"type\":\"Feature\",\"properties\":\{"
-	primeiro_dado = dados.indexOf('<td>',(primeiro_dado+1));
-	segundo_dado = dados.indexOf('</td>',(segundo_dado+1));
-	estacao = dados.slice(primeiro_dado+4, segundo_dado);
-	json += `"Station": "${estacao}",`;
 
-	primeiro_dado = dados.indexOf('<td>',(primeiro_dado+1));
-	segundo_dado = dados.indexOf('</td>',(segundo_dado+1));
-	dado = dados.slice(primeiro_dado+4, segundo_dado);
-	json += `"Last": "${dado}",`;
-
-	primeiro_dado = dados.indexOf('<td>',(primeiro_dado+1));
-	segundo_dado = dados.indexOf('</td>',(segundo_dado+1));
-	dado = dados.slice(primeiro_dado+4, segundo_dado);
-	json += `"Size": "${dado}",`;
-
-	primeiro_dado = dados.indexOf('<td>',(primeiro_dado+1));
-	segundo_dado = dados.indexOf('</td>',(segundo_dado+1));
-	dado = dados.slice(primeiro_dado+4, segundo_dado);
-	json += `"Received": "${dado}",`;
-
-	primeiro_dado = dados.indexOf('<td>',(primeiro_dado+1));
-	segundo_dado = dados.indexOf('</td>',(segundo_dado+1));
-	dado = dados.slice(primeiro_dado+4, segundo_dado);
-
-    primeiro_status = dado.indexOf(">");
-    segundo_status = dado.indexOf("</");
-    dado = dado.slice(primeiro_status+1,segundo_status);
-	json += `"Status": "${dado}"},`
-    
-	primeiro_status = dado.indexOf(">");
-	segundo_status = dado.indexOf("</");
-	dado = dado.slice(primeiro_status+1,segundo_status);
-	json += dadosEstacoes[estacao];
-	json += "},"
-
-	for(let auxString = 1; auxString < 17; auxString++){
+	for(let auxString = 1; auxString < contadorDeEstacoes; auxString++){
 		primeiro_indice = string.indexOf('<tr><td>',(primeiro_indice+10));
 		segundo_indice = string.indexOf('</td></tr>',(segundo_indice+10));
 		dados = string.slice(primeiro_indice, segundo_indice);
@@ -170,6 +158,18 @@ function converterJSON(string){
 		dado = dados.slice(primeiro_dado+4, segundo_dado);
 		json += `"Received": "${dado}",`;
 
+		if(verificadorDeLogNovo > 0){
+			primeiro_dado = dados.indexOf('<td>',(primeiro_dado+1));
+			segundo_dado = dados.indexOf('</td>',(segundo_dado+1));
+			dado = dados.slice(primeiro_dado+4, segundo_dado);
+			json += `"Last_Three": "${dado}",`;
+			
+			primeiro_dado = dados.indexOf('<td>',(primeiro_dado+1));
+			segundo_dado = dados.indexOf('</td>',(segundo_dado+1));
+			dado = dados.slice(primeiro_dado+4, segundo_dado);
+			json += `"Last_Size": "${dado}",`;
+		}
+
 		primeiro_dado = dados.indexOf('<td>',(primeiro_dado+1));
 		segundo_dado = dados.indexOf('</td>',(segundo_dado+1));
 		dado = dados.slice(primeiro_dado+4, segundo_dado);
@@ -182,40 +182,7 @@ function converterJSON(string){
 		json += dadosEstacoes[estacao];
 		json += "},"
 	}
-
-	primeiro_dado = segundo_dado = 0;
-	json += "\{\"type\":\"Feature\",\"properties\":\{"
-	primeiro_dado = dados.indexOf('<td>',(primeiro_dado+1));
-	segundo_dado = dados.indexOf('</td>',(segundo_dado+1));
-	estacao = dados.slice(primeiro_dado+4, segundo_dado);
-	json += `"Station": "${estacao}",`;
-
-	primeiro_dado = dados.indexOf('<td>',(primeiro_dado+1));
-	segundo_dado = dados.indexOf('</td>',(segundo_dado+1));
-	dado = dados.slice(primeiro_dado+4, segundo_dado);
-	json += `"Last": "${dado}",`;
-
-	primeiro_dado = dados.indexOf('<td>',(primeiro_dado+1));
-	segundo_dado = dados.indexOf('</td>',(segundo_dado+1));
-	dado = dados.slice(primeiro_dado+4, segundo_dado);
-	json += `"Size": "${dado}",`;
-
-	primeiro_dado = dados.indexOf('<td>',(primeiro_dado+1));
-	segundo_dado = dados.indexOf('</td>',(segundo_dado+1));
-	dado = dados.slice(primeiro_dado+4, segundo_dado);
-	json += `"Received": "${dado}",`;
-
-	primeiro_dado = dados.indexOf('<td>',(primeiro_dado+1));
-	segundo_dado = dados.indexOf('</td>',(segundo_dado+1));
-	dado = dados.slice(primeiro_dado+4, segundo_dado);
-	
-	primeiro_status = dado.indexOf(">");
-	segundo_status = dado.indexOf("</");
-	dado = dado.slice(primeiro_status+1,segundo_status);
-	
-	json += `"Status": "${dado}"},`;
-	json += dadosEstacoes[estacao];
-	json += "}"
+	json = json.substring(0, json.length - 1);
 	json += "\]\}";
 
 	return json;
