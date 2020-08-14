@@ -261,6 +261,8 @@ function definirLimiteData(){
     var dataMaxima = ano + '-' + mes + '-' + dia;
 
     document.getElementById('data-logs').setAttribute('max', dataMaxima);
+    document.getElementById('data-um').setAttribute('max', dataMaxima);
+    document.getElementById('data-dois').setAttribute('max', dataMaxima);
 }
 
 async function iterarEntreDatas(){
